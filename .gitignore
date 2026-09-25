@@ -1,0 +1,15 @@
+# Local session and credential stores (CRITICAL: NEVER COMMIT TO GIT)
+*.token
+*.email
+*.last_switched
+profiles.json
+profiles/
+
+# macOS metadata
+.DS_Store
+._*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo

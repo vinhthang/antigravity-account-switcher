@@ -67,11 +67,11 @@ switch-acc() {
       ;;
 
     list)
-      local active_token
+      local active_token active_email="" active_hash=""
       active_token=$(/usr/bin/security find-generic-password -s "$KEYCHAIN_SERVICE" -a "$KEYCHAIN_ACCOUNT" -w 2>/dev/null)
-      local active_hash=""
       if [[ -n "$active_token" ]]; then
         active_hash=$(echo -n "$active_token" | shasum -a 256 | awk '{print substr($1,1,12)}')
+        active_email=$(_switch_acc_extract_email "$active_token")
       fi
 
       setopt local_options null_glob
@@ -91,10 +91,7 @@ switch-acc() {
         pname="${f:t:r}"
         ptoken=$(<"$f")
         phash=$(echo -n "$ptoken" | shasum -a 256 | awk '{print substr($1,1,12)}')
-        prof_status=" "
-        if [[ "$active_hash" == "$phash" ]]; then
-          prof_status="[ACTIVE]"
-        fi
+
         email_file="$PROFILES_DIR/${pname}.email"
         if [[ -f "$email_file" ]]; then
           email=$(<"$email_file")
@@ -102,6 +99,17 @@ switch-acc() {
           email=$(_switch_acc_extract_email "$ptoken")
           [[ -n "$email" && "$email" != "-" ]] && print -r -- "$email" > "$email_file"
         fi
+
+        prof_status=" "
+        if [[ "$active_hash" == "$phash" ]] || [[ -n "$active_email" && "$active_email" != "-" && "$active_email" == "$email" ]]; then
+          prof_status="[ACTIVE]"
+          # If the active token in Keychain has been refreshed, sync the new token to the profile file
+          if [[ "$active_hash" != "$phash" && -n "$active_token" ]]; then
+            print -r -- "$active_token" > "$f"
+            phash="$active_hash"
+          fi
+        fi
+
         added_date=$(stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S" "$f" 2>/dev/null || echo "Unknown")
         last_switched_file="$PROFILES_DIR/${pname}.last_switched"
         if [[ -f "$last_switched_file" ]]; then

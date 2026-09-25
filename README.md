@@ -147,6 +147,13 @@ switch-acc delete acc1
 
 ---
 
+## Authorship & Credits
+
+- **Architecture & Implementation:** Gemini 3.8 Flash (Google DeepMind)
+- **Concept & Testing:** Vinh Thang ([@vinhthang](https://github.com/vinhthang))
+
+---
+
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.

@@ -1,0 +1,3 @@
+{
+  "allowed_binaries": ["switch-acc", "zsh", "bash"]
+}

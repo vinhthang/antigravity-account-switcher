@@ -47,6 +47,7 @@ flowchart TD
 - **Zero Browser Re-Authentication:** Save each account once; switch seamlessly afterwards.
 - **Automatic Email Discovery:** Decodes and displays the Google Account email directly from the OAuth JWT `id_token`.
 - **Timestamp Tracking:** Tracks both `DATE ADDED` and `LAST SWITCHED` timestamps for quota monitoring.
+- **Antigravity Skill Integration:** Switch accounts remotely via AI prompt in web or desktop sessions.
 - **Zsh Tab-Autocompletion:** Supports `switch-acc switch <TAB>` and `switch-acc delete <TAB>`.
 - **Zero External Dependencies:** Built with pure Zsh and native macOS binaries (`/usr/bin/security`).
 - **Completely Isolated:** Tokens are stored locally under strict `0700` and `0600` permissions.
@@ -129,6 +130,13 @@ If you prefer to restart the application manually later:
 switch-acc switch acc1 --no-restart
 ```
 
+#### Non-blocking Detached Restart (for Remote Web Sessions)
+When switching from an Antigravity agent session or web interface:
+```bash
+switch-acc switch acc1 --detached
+```
+Schedules a 2-second background restart, allowing the active command process to return cleanly before Antigravity restarts and reconnects.
+
 ---
 
 ### 4. Delete Profiles
@@ -136,6 +144,17 @@ switch-acc switch acc1 --no-restart
 ```bash
 switch-acc delete acc1
 ```
+
+---
+
+## Antigravity Skill Integration (Remote Web Switching)
+
+`switch-acc` includes a native **Antigravity Skill** (`antigravity-account-switcher`) installed to `~/.gemini/config/skills/antigravity-account-switcher/SKILL.md`.
+
+This enables the AI agent in both desktop and remote web sessions ([antigravity.google.com](https://antigravity.google.com)) to inspect accounts and switch profiles directly on conversational request:
+
+- **List Profiles via Chat:** *"Which accounts do I have?"* or *"List available Antigravity accounts"* &rarr; The agent executes `switch-acc list` and reports the active profile and associated emails.
+- **Switch Account via Chat:** *"Switch to acc2"* &rarr; The agent executes `switch-acc switch acc2 --detached`. The token is updated in the macOS Keychain, and Antigravity restarts cleanly in the background and reconnects automatically without breaking the session.
 
 ---
 

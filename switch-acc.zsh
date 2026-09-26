@@ -124,9 +124,9 @@ switch-acc() {
 
     switch)
       local name="${2:-}"
-      local no_restart="${3:-}"
+      local restart_mode="${3:-}"
       if [[ -z "$name" ]]; then
-        echo "Usage: switch-acc switch <profile_name> [--no-restart]"
+        echo "Usage: switch-acc switch <profile_name> [--no-restart|--detached]"
         return 1
       fi
 
@@ -151,8 +151,11 @@ switch-acc() {
       echo "[OK] Keychain successfully updated to profile '$name'."
       date '+%Y-%m-%d %H:%M:%S' > "$PROFILES_DIR/${name}.last_switched"
 
-      if [[ "$no_restart" == "--no-restart" ]]; then
+      if [[ "$restart_mode" == "--no-restart" ]]; then
         echo "Notice: --no-restart specified. Restart Antigravity manually to apply."
+      elif [[ "$restart_mode" == "--detached" || "$restart_mode" == "--detached-restart" ]]; then
+        echo "[OK] Detached restart scheduled in 2 seconds. Antigravity will reconnect automatically."
+        nohup zsh -c 'sleep 2 && if pgrep -f "/Applications/Antigravity.app" >/dev/null 2>&1; then osascript -e "tell application \"Antigravity\" to quit" 2>/dev/null; sleep 2; pkill -f "/Applications/Antigravity.app" 2>/dev/null; sleep 1; fi; open -a "Antigravity"' >/dev/null 2>&1 &
       else
         if pgrep -f "/Applications/Antigravity.app" >/dev/null 2>&1; then
           echo "Quitting $APP_NAME..."
@@ -194,11 +197,11 @@ switch-acc() {
       echo "Antigravity Account Profile Switcher (Zsh)"
       echo ""
       echo "Commands:"
-      echo "  switch-acc save <name>                 Snapshot current active login to <name>"
-      echo "  switch-acc list                        List all saved profiles and active state"
-      echo "  switch-acc switch <name> [--no-restart] Swap token in Keychain & restart Antigravity"
-      echo "  switch-acc delete <name>               Delete a saved profile"
-      echo "  switch-acc help                        Show this help message"
+      echo "  switch-acc save <name>                               Snapshot current active login to <name>"
+      echo "  switch-acc list                                      List all saved profiles and active state"
+      echo "  switch-acc switch <name> [--no-restart|--detached]   Swap token in Keychain & restart Antigravity"
+      echo "  switch-acc delete <name>                             Delete a saved profile"
+      echo "  switch-acc help                                      Show this help message"
       ;;
 
     *)
@@ -239,7 +242,10 @@ _switch_acc_completion() {
   elif (( CURRENT == 4 )); then
     if [[ "$words[2]" == "switch" ]]; then
       local -a opts
-      opts=('--no-restart:Update Keychain without closing the app')
+      opts=(
+        '--no-restart:Update Keychain without closing the app'
+        '--detached:Non-blocking delayed restart for remote sessions'
+      )
       _describe 'option' opts
     fi
   fi

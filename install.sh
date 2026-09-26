@@ -22,6 +22,17 @@ ln -sf "$SOURCE_FILE" "$INSTALL_DIR/switch-acc"
 
 echo "[OK] Installed to $INSTALL_DIR/switch-acc"
 
+# Install Antigravity Skill
+SKILL_SRC="$SCRIPT_DIR/skills/account-switcher/SKILL.md"
+SKILL_DIR="$HOME/.gemini/config/skills/antigravity-account-switcher"
+
+if [[ -f "$SKILL_SRC" ]]; then
+  echo "==> Installing Antigravity Account Switcher skill..."
+  mkdir -p "$SKILL_DIR"
+  cp -f "$SKILL_SRC" "$SKILL_DIR/SKILL.md"
+  echo "[OK] Installed skill to $SKILL_DIR/SKILL.md"
+fi
+
 # Check if ~/.local/bin is in PATH
 if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
   echo ""

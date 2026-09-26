@@ -67,6 +67,7 @@ switch-acc() {
       ;;
 
     list)
+      local format_mode="${2:-}"
       local active_token active_email="" active_hash=""
       active_token=$(/usr/bin/security find-generic-password -s "$KEYCHAIN_SERVICE" -a "$KEYCHAIN_ACCOUNT" -w 2>/dev/null)
       if [[ -n "$active_token" ]]; then
@@ -81,12 +82,22 @@ switch-acc() {
         return 0
       fi
 
-      echo "Saved Antigravity Profiles:"
-      echo "--------------------------------------------------------------------------------------------------------------------------------"
-      printf "%-10s %-16s %-32s %-16s %-22s %-22s\n" "STATUS" "PROFILE NAME" "EMAIL" "TOKEN HASH" "DATE ADDED" "LAST SWITCHED"
-      echo "--------------------------------------------------------------------------------------------------------------------------------"
+      local is_markdown=0
+      if [[ "$format_mode" == "--markdown" || "$format_mode" == "--md" ]]; then
+        is_markdown=1
+        echo "### Saved Antigravity Profiles"
+        echo ""
+        echo "| Status | Profile Name | Email | Token Checksum | Date Added | Last Switched |"
+        echo "| :---: | :--- | :--- | :--- | :--- | :--- |"
+      else
+        echo "Saved Antigravity Profiles:"
+        echo "--------------------------------------------------------------------------------------------------------------------------------"
+        printf "%-10s %-16s %-32s %-16s %-22s %-22s\n" "STATUS" "PROFILE NAME" "EMAIL" "TOKEN HASH" "DATE ADDED" "LAST SWITCHED"
+        echo "--------------------------------------------------------------------------------------------------------------------------------"
+      fi
 
       local pname ptoken phash prof_status added_date last_switched_file last_switched email_file email
+      local active_pname="" active_pemail=""
       for f in "${token_files[@]}"; do
         pname="${f:t:r}"
         ptoken=$(<"$f")
@@ -101,8 +112,12 @@ switch-acc() {
         fi
 
         prof_status=" "
+        local is_active=0
         if [[ "$active_hash" == "$phash" ]] || [[ -n "$active_email" && "$active_email" != "-" && "$active_email" == "$email" ]]; then
           prof_status="[ACTIVE]"
+          is_active=1
+          active_pname="$pname"
+          active_pemail="$email"
           # If the active token in Keychain has been refreshed, sync the new token to the profile file
           if [[ "$active_hash" != "$phash" && -n "$active_token" ]]; then
             print -r -- "$active_token" > "$f"
@@ -117,9 +132,28 @@ switch-acc() {
         else
           last_switched="$added_date"
         fi
-        printf "%-10s %-16s %-32s %-16s %-22s %-22s\n" "$prof_status" "$pname" "$email" "$phash" "$added_date" "$last_switched"
+
+        if [[ $is_markdown -eq 1 ]]; then
+          if [[ $is_active -eq 1 ]]; then
+            printf "| **\`[ACTIVE]\`** | **\`%s\`** | **\`%s\`** | \`%s\` | %s | %s |\n" "$pname" "$email" "$phash" "$added_date" "$last_switched"
+          else
+            printf "| | \`%s\` | \`%s\` | \`%s\` | %s | %s |\n" "$pname" "$email" "$phash" "$added_date" "$last_switched"
+          fi
+        else
+          printf "%-10s %-16s %-32s %-16s %-22s %-22s\n" "$prof_status" "$pname" "$email" "$phash" "$added_date" "$last_switched"
+        fi
       done
-      echo "--------------------------------------------------------------------------------------------------------------------------------"
+
+      if [[ $is_markdown -eq 1 ]]; then
+        echo ""
+        echo "---"
+        if [[ -n "$active_pname" ]]; then
+          echo "- **Current Active Account:** \`$active_pname\` (\`$active_pemail\`)"
+        fi
+        echo "- To switch accounts: \`switch-acc switch <name>\` or \`/antigravity-account-switcher switch <name>\`"
+      else
+        echo "--------------------------------------------------------------------------------------------------------------------------------"
+      fi
       ;;
 
     switch)
@@ -198,7 +232,7 @@ switch-acc() {
       echo ""
       echo "Commands:"
       echo "  switch-acc save <name>                               Snapshot current active login to <name>"
-      echo "  switch-acc list                                      List all saved profiles and active state"
+      echo "  switch-acc list [--markdown]                         List all saved profiles and active state"
       echo "  switch-acc switch <name> [--no-restart|--detached]   Swap token in Keychain & restart Antigravity"
       echo "  switch-acc delete <name>                             Delete a saved profile"
       echo "  switch-acc help                                      Show this help message"
@@ -234,6 +268,14 @@ _switch_acc_completion() {
           profs=(${profiles_dir}/*.token(N:t:r))
           _describe 'profile' profs
         fi
+        ;;
+      list)
+        local -a opts
+        opts=(
+          '--markdown:Output table in GitHub Flavored Markdown'
+          '--md:Output table in GitHub Flavored Markdown'
+        )
+        _describe 'option' opts
         ;;
       save)
         _message 'profile name'

@@ -13,9 +13,9 @@ Use this skill when the user asks to list, view, or switch between Google Antigr
 When the user asks which accounts are available or which account is active:
 Run:
 ```bash
-switch-acc list
+switch-acc list --markdown
 ```
-Format the resulting table clearly in your response, highlighting the `[ACTIVE]` account and its email.
+Output the command stdout directly verbatim. Do not reformat or summarize.
 
 ### 2. Switch Account (Remote / In-Chat)
 When the user requests to switch to a specific account profile (e.g., "switch to acc1"):

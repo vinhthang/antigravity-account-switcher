@@ -108,6 +108,13 @@ STATUS     PROFILE NAME     EMAIL                            TOKEN HASH       DA
 --------------------------------------------------------------------------------------------------------------------------------
 ```
 
+#### Markdown Output (`--markdown` or `--md`)
+Format the profile list directly as a GitHub Flavored Markdown table:
+
+```bash
+switch-acc list --markdown
+```
+
 ---
 
 ### 3. Switch Profiles (`switch-acc switch`)
@@ -153,7 +160,7 @@ switch-acc delete acc1
 
 This enables the AI agent in both desktop and remote web sessions ([antigravity.google.com](https://antigravity.google.com)) to inspect accounts and switch profiles directly on conversational request:
 
-- **List Profiles via Chat:** *"Which accounts do I have?"* or *"List available Antigravity accounts"* &rarr; The agent executes `switch-acc list` and reports the active profile and associated emails.
+- **List Profiles via Chat:** *"Which accounts do I have?"* or *"List available Antigravity accounts"* &rarr; The agent executes `switch-acc list --markdown` and reports the active profile and associated emails.
 - **Switch Account via Chat:** *"Switch to acc2"* &rarr; The agent executes `switch-acc switch acc2 --detached`. The token is updated in the macOS Keychain, and Antigravity restarts cleanly in the background and reconnects automatically without breaking the session.
 
 ---
